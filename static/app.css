@@ -26,6 +26,8 @@ body {
         linear-gradient(135deg, rgba(21, 94, 87, 0.08), rgba(216, 155, 52, 0.06)),
         var(--surface-soft) !important;
     letter-spacing: 0;
+    min-height: 100vh;
+    margin: 0 !important;
 }
 
 a {
@@ -34,12 +36,35 @@ a {
 
 .sidebar {
     width: var(--sidebar-w) !important;
+    height: 100vh !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    padding-top: 14px !important;
     background:
         linear-gradient(180deg, #123f3b 0%, #0f302f 100%) !important;
     border-right: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow: 16px 0 36px rgba(16, 42, 47, 0.16);
     overflow-y: auto;
     z-index: 20;
+}
+
+.sidebar ul {
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 0 0 16px !important;
+}
+
+.sidebar li::marker {
+    content: "" !important;
+}
+
+.sidebar ul li.divider,
+.sidebar li.divider {
+    height: 1px;
+    padding: 0 !important;
+    margin: 14px 18px !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.14) !important;
 }
 
 .sidebar::after {
@@ -49,10 +74,11 @@ a {
 }
 
 .sidebar .logo {
-    min-height: 72px;
+    min-height: 56px;
     gap: 10px;
     color: #f7fbfa;
     letter-spacing: 0;
+    padding: 8px 18px 14px !important;
 }
 
 .sidebar .logo::before {
@@ -138,7 +164,8 @@ body.sidebar-collapsed .sidebar-toggle {
 .main-content {
     margin-left: var(--sidebar-w) !important;
     width: calc(100% - var(--sidebar-w)) !important;
-    padding: 28px !important;
+    padding: 24px 32px 32px !important;
+    min-height: 100vh;
 }
 
 .header {
@@ -146,9 +173,9 @@ body.sidebar-collapsed .sidebar-toggle {
     align-items: center;
     gap: 10px;
     color: var(--ink) !important;
-    font-size: clamp(24px, 3vw, 34px) !important;
+    font-size: clamp(24px, 2.2vw, 32px) !important;
     font-weight: 800 !important;
-    margin-bottom: 24px !important;
+    margin: 0 0 18px !important;
 }
 
 .header i {
@@ -495,8 +522,8 @@ label,
     grid-template-columns: minmax(0, 1fr) minmax(280px, 420px);
     gap: 20px;
     align-items: stretch;
-    margin-bottom: 22px;
-    padding: 24px;
+    margin-bottom: 18px;
+    padding: 18px;
     border: 1px solid rgba(220, 230, 227, 0.95);
     border-radius: var(--radius);
     background:
@@ -507,10 +534,10 @@ label,
 }
 
 .feature-hero h1 {
-    max-width: 720px;
-    margin: 8px 0;
-    font-size: clamp(26px, 3vw, 40px);
-    line-height: 1.08;
+    max-width: 680px;
+    margin: 8px 0 6px;
+    font-size: clamp(24px, 2.3vw, 34px);
+    line-height: 1.12;
     font-weight: 800;
 }
 
@@ -518,6 +545,7 @@ label,
     max-width: 720px;
     margin: 0;
     color: rgba(255, 255, 255, 0.82);
+    font-size: 15px;
 }
 
 .eyebrow {
@@ -543,15 +571,15 @@ label,
     display: flex;
     flex-direction: column;
     justify-content: center;
-    min-height: 96px;
-    padding: 14px;
+    min-height: 78px;
+    padding: 12px;
     border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: var(--radius);
     background: rgba(255, 255, 255, 0.11);
 }
 
 .feature-metrics strong {
-    font-size: 26px;
+    font-size: 24px;
     line-height: 1;
 }
 
@@ -567,7 +595,7 @@ label,
 }
 
 .feature-grid.two-columns {
-    grid-template-columns: minmax(320px, 0.8fr) minmax(0, 1.2fr);
+    grid-template-columns: minmax(340px, 0.78fr) minmax(0, 1.22fr);
 }
 
 .feature-grid.three-columns {
