@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
+from werkzeug.exceptions import HTTPException
 from sqlalchemy import inspect, or_
 import joblib
 import numpy as np
@@ -204,6 +205,8 @@ def serve_static(filename):
 # Global error handler
 @app.errorhandler(Exception)
 def handle_exception(e):
+    if isinstance(e, HTTPException):
+        return jsonify({'error': e.description, 'status': 'error'}), e.code
     logger.error(f"Unhandled exception: {str(e)}", exc_info=True)
     return jsonify({'error': str(e), 'status': 'error'}), 500
 
