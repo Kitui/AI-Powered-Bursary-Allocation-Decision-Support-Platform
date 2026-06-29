@@ -96,6 +96,7 @@
         .status-approved { color: #28a745; }
         .status-declined { color: #dc3545; }
     </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}?v=1">
 </head>
 <body>
     <!-- Sidebar Navigation -->
@@ -222,5 +223,6 @@
             }
         });
     </script>
+    <script src="{{ url_for('static', filename='app.js') }}?v=1"></script>
 </body>
 </html>

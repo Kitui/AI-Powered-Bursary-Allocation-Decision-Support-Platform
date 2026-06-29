@@ -107,6 +107,7 @@
             white-space: nowrap;
         }
     </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}?v=1">
 </head>
 <body>
     <!-- Sidebar Navigation -->
@@ -363,7 +364,7 @@
 
         <!-- Applications Received Section -->
         <div class="form-card">
-            <h5>Applications Received</h5>
+            <h5>Recent Applications</h5>
             {% if applications %}
                 <div class="table-responsive">
                     <table class="table table-bordered">
@@ -429,5 +430,6 @@
             // The form submission is handled by the Flask route
         });
     </script>
+    <script src="{{ url_for('static', filename='app.js') }}?v=1"></script>
 </body>
 </html>

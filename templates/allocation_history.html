@@ -71,6 +71,7 @@
             border-color: #1a3c34;
         }
     </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}?v=1">
 </head>
 <body>
     <div class="sidebar">
@@ -135,5 +136,6 @@
             </table>
         </div>
     </div>
+    <script src="{{ url_for('static', filename='app.js') }}?v=1"></script>
 </body>
 </html>

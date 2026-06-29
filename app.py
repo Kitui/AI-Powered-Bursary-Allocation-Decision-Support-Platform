@@ -1866,7 +1866,7 @@ def single_allocation():
         flash('You do not have permission to access this page.', 'danger')
         return redirect(url_for('index'))
 
-    all_applications = Application.query.all()
+    all_applications = Application.query.order_by(Application.submitted_at.desc()).limit(500).all()
     applications_data = []
     for app in all_applications:
         user = User.query.get(app.user_id)
