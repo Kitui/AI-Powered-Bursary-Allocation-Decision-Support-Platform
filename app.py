@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_bcrypt import Bcrypt
 from werkzeug.utils import secure_filename
-from sqlalchemy import inspect
+from sqlalchemy import inspect, or_
 import joblib
 import numpy as np
 import pandas as pd
@@ -61,6 +61,8 @@ class User(db.Model, UserMixin):
 class Application(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user = db.relationship('User', backref=db.backref('applications', lazy='dynamic'))
+    allocations = db.relationship('Allocation', backref='application', lazy='dynamic')
     name = db.Column(db.String(100))
     academic_level = db.Column(db.String(50))
     year_of_application = db.Column(db.Integer)
@@ -115,6 +117,52 @@ class Batch(db.Model):
     budget_utilization = db.Column(db.Float, default=0)
     fairness_metrics_json = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class ThankYouMessage(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    application_id = db.Column(db.Integer, db.ForeignKey('application.id'))
+    title = db.Column(db.String(140), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    visibility = db.Column(db.String(20), default='private')
+    reviewed = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    user = db.relationship('User', backref=db.backref('thank_you_messages', lazy='dynamic'))
+    application = db.relationship('Application', backref=db.backref('thank_you_messages', lazy='dynamic'))
+
+class CommunicationMessage(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    subject = db.Column(db.String(160), nullable=False)
+    body = db.Column(db.Text, nullable=False)
+    audience = db.Column(db.String(30), default='all')
+    priority = db.Column(db.String(20), default='normal')
+    status = db.Column(db.String(20), default='sent')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    sender = db.relationship('User', backref=db.backref('communication_messages', lazy='dynamic'))
+
+class SupportTicket(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    category = db.Column(db.String(50), default='General')
+    title = db.Column(db.String(160), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    priority = db.Column(db.String(20), default='normal')
+    status = db.Column(db.String(20), default='open')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    user = db.relationship('User', backref=db.backref('support_tickets', lazy='dynamic'))
+
+class UserSetting(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=True, nullable=False)
+    email_notifications = db.Column(db.Boolean, default=True)
+    sms_notifications = db.Column(db.Boolean, default=False)
+    compact_tables = db.Column(db.Boolean, default=False)
+    default_budget = db.Column(db.Float, default=1000000)
+    theme = db.Column(db.String(20), default='modern')
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    user = db.relationship('User', backref=db.backref('settings', uselist=False))
 
 # Flask-Login user loader
 @login_manager.user_loader
@@ -1957,6 +2005,204 @@ def profile():
         return redirect(url_for('profile'))
 
     return render_template('profile.html')
+
+def get_or_create_user_setting(user):
+    setting = UserSetting.query.filter_by(user_id=user.id).first()
+    if setting:
+        return setting
+    setting = UserSetting(user_id=user.id)
+    db.session.add(setting)
+    db.session.commit()
+    return setting
+
+@app.route('/thank_yous', methods=['GET', 'POST'])
+@login_required
+def thank_yous():
+    if request.method == 'POST':
+        action = request.form.get('action', 'create')
+        if action == 'mark_reviewed' and current_user.role == 'admin':
+            message = ThankYouMessage.query.get(request.form.get('message_id'))
+            if message:
+                message.reviewed = True
+                db.session.commit()
+                flash('Thank-you message marked as reviewed.', 'success')
+            return redirect(url_for('thank_yous'))
+
+        title = request.form.get('title', '').strip()
+        body = request.form.get('message', '').strip()
+        visibility = request.form.get('visibility', 'private')
+        application_id = request.form.get('application_id') or None
+
+        if not title or not body:
+            flash('Please add both a title and a message.', 'danger')
+            return redirect(url_for('thank_yous'))
+
+        if visibility not in ['private', 'public']:
+            visibility = 'private'
+
+        if application_id:
+            application = Application.query.get(application_id)
+            if not application or (current_user.role == 'applicant' and application.user_id != current_user.id):
+                flash('Please choose one of your own applications.', 'danger')
+                return redirect(url_for('thank_yous'))
+
+        db.session.add(ThankYouMessage(
+            user_id=current_user.id,
+            application_id=application_id,
+            title=title,
+            message=body,
+            visibility=visibility
+        ))
+        db.session.commit()
+        flash('Thank-you message submitted successfully.', 'success')
+        return redirect(url_for('thank_yous'))
+
+    if current_user.role in ['admin', 'stakeholder']:
+        messages = ThankYouMessage.query.order_by(ThankYouMessage.created_at.desc()).limit(100).all()
+        applications = Application.query.order_by(Application.submitted_at.desc()).limit(100).all()
+    else:
+        messages = ThankYouMessage.query.filter(
+            or_(ThankYouMessage.user_id == current_user.id, ThankYouMessage.visibility == 'public')
+        ).order_by(ThankYouMessage.created_at.desc()).limit(100).all()
+        applications = Application.query.filter_by(user_id=current_user.id).order_by(Application.submitted_at.desc()).all()
+
+    stats = {
+        'total': len(messages),
+        'public': sum(1 for item in messages if item.visibility == 'public'),
+        'pending_review': sum(1 for item in messages if not item.reviewed),
+    }
+    return render_template('thank_yous.html', messages=messages, applications=applications, stats=stats)
+
+@app.route('/communications', methods=['GET', 'POST'])
+@login_required
+def communications():
+    if request.method == 'POST':
+        subject = request.form.get('subject', '').strip()
+        body = request.form.get('body', '').strip()
+        audience = request.form.get('audience', 'staff' if current_user.role == 'applicant' else 'all')
+        priority = request.form.get('priority', 'normal')
+
+        if not subject or not body:
+            flash('Please add both a subject and a message.', 'danger')
+            return redirect(url_for('communications'))
+
+        if current_user.role == 'applicant':
+            audience = 'staff'
+            status = 'submitted'
+        else:
+            status = 'sent'
+            if audience not in ['all', 'applicant', 'stakeholder', 'admin']:
+                audience = 'all'
+
+        if priority not in ['normal', 'high', 'urgent']:
+            priority = 'normal'
+
+        db.session.add(CommunicationMessage(
+            sender_id=current_user.id,
+            subject=subject,
+            body=body,
+            audience=audience,
+            priority=priority,
+            status=status
+        ))
+        db.session.commit()
+        flash('Communication saved successfully.', 'success')
+        return redirect(url_for('communications'))
+
+    if current_user.role in ['admin', 'stakeholder']:
+        messages = CommunicationMessage.query.order_by(CommunicationMessage.created_at.desc()).limit(120).all()
+    else:
+        messages = CommunicationMessage.query.filter(
+            or_(
+                CommunicationMessage.sender_id == current_user.id,
+                CommunicationMessage.audience == 'all',
+                CommunicationMessage.audience == current_user.role
+            )
+        ).order_by(CommunicationMessage.created_at.desc()).limit(120).all()
+
+    stats = {
+        'total': len(messages),
+        'urgent': sum(1 for item in messages if item.priority == 'urgent'),
+        'submitted': sum(1 for item in messages if item.status == 'submitted'),
+    }
+    return render_template('communications.html', messages=messages, stats=stats)
+
+@app.route('/support', methods=['GET', 'POST'])
+@login_required
+def support():
+    if request.method == 'POST':
+        action = request.form.get('action', 'create')
+        if action == 'update_status' and current_user.role == 'admin':
+            ticket = SupportTicket.query.get(request.form.get('ticket_id'))
+            new_status = request.form.get('status', 'open')
+            if ticket and new_status in ['open', 'in_progress', 'resolved']:
+                ticket.status = new_status
+                db.session.commit()
+                flash('Support ticket updated.', 'success')
+            return redirect(url_for('support'))
+
+        title = request.form.get('title', '').strip()
+        message = request.form.get('message', '').strip()
+        category = request.form.get('category', 'General')
+        priority = request.form.get('priority', 'normal')
+
+        if not title or not message:
+            flash('Please add both a ticket title and details.', 'danger')
+            return redirect(url_for('support'))
+
+        if priority not in ['normal', 'high', 'urgent']:
+            priority = 'normal'
+
+        db.session.add(SupportTicket(
+            user_id=current_user.id,
+            title=title,
+            message=message,
+            category=category,
+            priority=priority
+        ))
+        db.session.commit()
+        flash('Support ticket created successfully.', 'success')
+        return redirect(url_for('support'))
+
+    if current_user.role == 'admin':
+        tickets = SupportTicket.query.order_by(SupportTicket.created_at.desc()).limit(120).all()
+    else:
+        tickets = SupportTicket.query.filter_by(user_id=current_user.id).order_by(SupportTicket.created_at.desc()).limit(120).all()
+
+    stats = {
+        'open': sum(1 for item in tickets if item.status == 'open'),
+        'in_progress': sum(1 for item in tickets if item.status == 'in_progress'),
+        'resolved': sum(1 for item in tickets if item.status == 'resolved'),
+    }
+    return render_template('support.html', tickets=tickets, stats=stats)
+
+@app.route('/settings', methods=['GET', 'POST'])
+@login_required
+def settings():
+    setting = get_or_create_user_setting(current_user)
+    if request.method == 'POST':
+        current_user.name = request.form.get('name', current_user.name).strip()
+        current_user.gender = request.form.get('gender', current_user.gender)
+        current_user.ward = request.form.get('ward', current_user.ward)
+        setting.email_notifications = request.form.get('email_notifications') == 'on'
+        setting.sms_notifications = request.form.get('sms_notifications') == 'on'
+        setting.compact_tables = request.form.get('compact_tables') == 'on'
+        setting.theme = request.form.get('theme', 'modern')
+        setting.default_budget = parse_number(request.form.get('default_budget'), setting.default_budget or 1000000)
+
+        password = request.form.get('password', '').strip()
+        if password:
+            current_user.set_password(password)
+
+        try:
+            db.session.commit()
+            flash('Settings saved successfully.', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error saving settings: {str(e)}', 'danger')
+        return redirect(url_for('settings'))
+
+    return render_template('settings.html', setting=setting)
 
 if __name__ == '__main__':
     with app.app_context():

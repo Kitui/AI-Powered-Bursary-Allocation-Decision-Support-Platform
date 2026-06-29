@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support - Bursary Allocation System</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}?v=1">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">Trans Nzoia</div>
+        <ul>
+            <li><a href="{{ url_for('index') }}"><i class="fas fa-home"></i> Home</a></li>
+            {% if current_user.role == 'admin' %}
+                <li><a href="{{ url_for('batch_allocation') }}"><i class="fas fa-file-upload"></i> Batch Allocation</a></li>
+                <li><a href="{{ url_for('single_allocation') }}"><i class="fas fa-user-plus"></i> Single Allocation</a></li>
+                <li><a href="{{ url_for('dashboard') }}"><i class="fas fa-chart-bar"></i> Dashboard</a></li>
+                <li><a href="{{ url_for('allocation_history') }}"><i class="fas fa-clock"></i> Allocation History</a></li>
+            {% endif %}
+            {% if current_user.role == 'applicant' %}
+                <li><a href="{{ url_for('applications') }}"><i class="fas fa-list"></i> Applications</a></li>
+            {% endif %}
+            <li><a href="{{ url_for('profile') }}"><i class="fas fa-user"></i> Profile</a></li>
+            <li class="divider"></li>
+            <li><a href="{{ url_for('thank_yous') }}"><i class="fas fa-heart"></i> Thank You's</a></li>
+            <li><a href="{{ url_for('communications') }}"><i class="fas fa-comments"></i> Communications</a></li>
+            <li class="divider"></li>
+            <li><a href="{{ url_for('support') }}" class="active"><i class="fas fa-question-circle"></i> Support</a></li>
+            <li><a href="{{ url_for('settings') }}"><i class="fas fa-cog"></i> Settings</a></li>
+            <li><a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        </ul>
+    </div>
+
+    <main class="main-content">
+        <div class="header"><i class="fas fa-question-circle"></i> Support</div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <section class="feature-hero">
+            <div>
+                <span class="eyebrow">Help desk</span>
+                <h1>Track technical, application, and allocation support issues.</h1>
+                <p>Create tickets, follow their status, and let administrators move requests from open to resolved.</p>
+            </div>
+            <div class="feature-metrics">
+                <div><strong>{{ stats.open }}</strong><span>Open</span></div>
+                <div><strong>{{ stats.in_progress }}</strong><span>In progress</span></div>
+                <div><strong>{{ stats.resolved }}</strong><span>Resolved</span></div>
+            </div>
+        </section>
+
+        <section class="feature-grid two-columns">
+            <div class="form-card">
+                <h5>Create Support Ticket</h5>
+                <form method="POST">
+                    <div class="form-group">
+                        <label for="title">Issue Title</label>
+                        <input class="form-control" id="title" name="title" maxlength="160" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="category">Category</label>
+                        <select class="form-control" id="category" name="category">
+                            <option>Application</option>
+                            <option>Allocation</option>
+                            <option>Account</option>
+                            <option>Technical</option>
+                            <option>General</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="priority">Priority</label>
+                        <select class="form-control" id="priority" name="priority">
+                            <option value="normal">Normal</option>
+                            <option value="high">High</option>
+                            <option value="urgent">Urgent</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Details</label>
+                        <textarea class="form-control" id="message" name="message" rows="6" required></textarea>
+                    </div>
+                    <button class="btn btn-primary" type="submit"><i class="fas fa-life-ring"></i> Create Ticket</button>
+                </form>
+            </div>
+
+            <div class="activity-panel">
+                <h5>Tickets</h5>
+                {% for ticket in tickets %}
+                    <article class="activity-item">
+                        <div>
+                            <strong>#{{ ticket.id }} - {{ ticket.title }}</strong>
+                            <span>{{ ticket.user.name if ticket.user else 'Unknown user' }} - {{ ticket.created_at.strftime('%Y-%m-%d %H:%M') if ticket.created_at else 'N/A' }}</span>
+                        </div>
+                        <p>{{ ticket.message }}</p>
+                        <div class="activity-actions">
+                            <span class="status-pill">{{ ticket.category }}</span>
+                            <span class="status-pill {{ 'danger' if ticket.priority == 'urgent' else 'warning' if ticket.priority == 'high' else '' }}">{{ ticket.priority }}</span>
+                            <span class="status-pill success">{{ ticket.status.replace('_', ' ') }}</span>
+                            {% if current_user.role == 'admin' %}
+                                <form method="POST" class="inline-form">
+                                    <input type="hidden" name="action" value="update_status">
+                                    <input type="hidden" name="ticket_id" value="{{ ticket.id }}">
+                                    <select class="form-control form-control-sm" name="status">
+                                        <option value="open" {% if ticket.status == 'open' %}selected{% endif %}>Open</option>
+                                        <option value="in_progress" {% if ticket.status == 'in_progress' %}selected{% endif %}>In progress</option>
+                                        <option value="resolved" {% if ticket.status == 'resolved' %}selected{% endif %}>Resolved</option>
+                                    </select>
+                                    <button class="btn btn-sm btn-outline-primary" type="submit">Update</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </article>
+                {% else %}
+                    <p class="muted-copy">No support tickets yet.</p>
+                {% endfor %}
+            </div>
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='app.js') }}?v=1"></script>
+</body>
+</html>

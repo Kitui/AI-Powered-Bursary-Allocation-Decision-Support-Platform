@@ -490,6 +490,216 @@ label,
     text-align: center;
 }
 
+.feature-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 420px);
+    gap: 20px;
+    align-items: stretch;
+    margin-bottom: 22px;
+    padding: 24px;
+    border: 1px solid rgba(220, 230, 227, 0.95);
+    border-radius: var(--radius);
+    background:
+        linear-gradient(135deg, rgba(21, 94, 87, 0.94), rgba(31, 122, 140, 0.9)),
+        var(--brand);
+    color: #ffffff;
+    box-shadow: var(--shadow);
+}
+
+.feature-hero h1 {
+    max-width: 720px;
+    margin: 8px 0;
+    font-size: clamp(26px, 3vw, 40px);
+    line-height: 1.08;
+    font-weight: 800;
+}
+
+.feature-hero p {
+    max-width: 720px;
+    margin: 0;
+    color: rgba(255, 255, 255, 0.82);
+}
+
+.eyebrow {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 4px 9px;
+    border-radius: 8px;
+    background: rgba(246, 196, 83, 0.18);
+    color: #ffe39a;
+    font-size: 13px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.feature-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.feature-metrics div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 96px;
+    padding: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: var(--radius);
+    background: rgba(255, 255, 255, 0.11);
+}
+
+.feature-metrics strong {
+    font-size: 26px;
+    line-height: 1;
+}
+
+.feature-metrics span {
+    margin-top: 8px;
+    color: rgba(255, 255, 255, 0.78);
+    font-size: 13px;
+}
+
+.feature-grid {
+    display: grid;
+    gap: 20px;
+}
+
+.feature-grid.two-columns {
+    grid-template-columns: minmax(320px, 0.8fr) minmax(0, 1.2fr);
+}
+
+.feature-grid.three-columns {
+    grid-template-columns: repeat(3, minmax(220px, 1fr));
+}
+
+.activity-panel {
+    max-height: 720px;
+    overflow: auto;
+    padding: 18px;
+    border: 1px solid rgba(220, 230, 227, 0.95);
+    border-radius: var(--radius);
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: var(--shadow-soft);
+}
+
+.activity-panel h5,
+.form-card h5 {
+    margin-bottom: 16px;
+    color: var(--ink);
+    font-weight: 800;
+}
+
+.activity-item {
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+}
+
+.activity-item + .activity-item {
+    margin-top: 12px;
+}
+
+.activity-item div:first-child {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.activity-item strong {
+    color: var(--ink);
+}
+
+.activity-item span {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.activity-item p {
+    margin: 10px 0 12px;
+    color: #35494d;
+}
+
+.activity-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 4px 8px;
+    border-radius: 8px;
+    background: rgba(31, 122, 140, 0.1);
+    color: var(--brand-2);
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: capitalize;
+}
+
+.status-pill.success {
+    background: rgba(35, 131, 95, 0.12);
+    color: var(--success);
+}
+
+.status-pill.warning {
+    background: rgba(216, 155, 52, 0.16);
+    color: #93600f;
+}
+
+.status-pill.danger {
+    background: rgba(180, 35, 24, 0.12);
+    color: var(--danger);
+}
+
+.inline-form {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    margin: 0;
+}
+
+.inline-form .form-control-sm {
+    min-width: 130px;
+}
+
+.muted-copy {
+    color: var(--muted);
+}
+
+.settings-panel {
+    max-width: none;
+}
+
+.settings-toggles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 4px 0 18px;
+}
+
+.settings-toggles label {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    min-height: 40px;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface-soft);
+    font-weight: 700;
+}
+
+.settings-toggles input {
+    width: 18px;
+    height: 18px;
+}
+
 .input-with-icon {
     position: relative;
 }
@@ -553,6 +763,20 @@ label,
 
     body.sidebar-open .sidebar-toggle {
         left: calc(var(--sidebar-w) - 18px);
+    }
+
+    .feature-hero,
+    .feature-grid.two-columns,
+    .feature-grid.three-columns {
+        grid-template-columns: 1fr;
+    }
+
+    .feature-metrics {
+        grid-template-columns: 1fr;
+    }
+
+    .activity-item div:first-child {
+        flex-direction: column;
     }
 }
 

@@ -188,11 +188,11 @@
                 <li><a href="{{ url_for('applications') }}"><i class="fas fa-list"></i> Applications</a></li>
             {% endif %}
             <li class="divider"></li>
-            <li><a href="#"><i class="fas fa-heart"></i> Thank You's</a></li>
-            <li><a href="#"><i class="fas fa-comments"></i> Communications</a></li>
+            <li><a href="{{ url_for('thank_yous') }}"><i class="fas fa-heart"></i> Thank You's</a></li>
+            <li><a href="{{ url_for('communications') }}"><i class="fas fa-comments"></i> Communications</a></li>
             <li class="divider"></li>
-            <li><a href="#"><i class="fas fa-question-circle"></i> Support</a></li>
-            <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+            <li><a href="{{ url_for('support') }}"><i class="fas fa-question-circle"></i> Support</a></li>
+            <li><a href="{{ url_for('settings') }}"><i class="fas fa-cog"></i> Settings</a></li>
             {% if current_user.is_authenticated %}
                 <li><a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
             {% else %}

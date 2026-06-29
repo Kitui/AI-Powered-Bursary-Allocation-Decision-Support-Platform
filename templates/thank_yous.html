@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thank You's - Bursary Allocation System</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}?v=1">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">Trans Nzoia</div>
+        <ul>
+            <li><a href="{{ url_for('index') }}"><i class="fas fa-home"></i> Home</a></li>
+            {% if current_user.role == 'admin' %}
+                <li><a href="{{ url_for('batch_allocation') }}"><i class="fas fa-file-upload"></i> Batch Allocation</a></li>
+                <li><a href="{{ url_for('single_allocation') }}"><i class="fas fa-user-plus"></i> Single Allocation</a></li>
+                <li><a href="{{ url_for('dashboard') }}"><i class="fas fa-chart-bar"></i> Dashboard</a></li>
+                <li><a href="{{ url_for('allocation_history') }}"><i class="fas fa-clock"></i> Allocation History</a></li>
+            {% endif %}
+            {% if current_user.role == 'applicant' %}
+                <li><a href="{{ url_for('applications') }}"><i class="fas fa-list"></i> Applications</a></li>
+            {% endif %}
+            <li><a href="{{ url_for('profile') }}"><i class="fas fa-user"></i> Profile</a></li>
+            <li class="divider"></li>
+            <li><a href="{{ url_for('thank_yous') }}" class="active"><i class="fas fa-heart"></i> Thank You's</a></li>
+            <li><a href="{{ url_for('communications') }}"><i class="fas fa-comments"></i> Communications</a></li>
+            <li class="divider"></li>
+            <li><a href="{{ url_for('support') }}"><i class="fas fa-question-circle"></i> Support</a></li>
+            <li><a href="{{ url_for('settings') }}"><i class="fas fa-cog"></i> Settings</a></li>
+            <li><a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        </ul>
+    </div>
+
+    <main class="main-content">
+        <div class="header"><i class="fas fa-heart"></i> Thank You's</div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <section class="feature-hero">
+            <div>
+                <span class="eyebrow">Impact feedback</span>
+                <h1>Capture beneficiary appreciation and review public stories.</h1>
+                <p>Students can submit thank-you notes after awards. Administrators can review messages and track what is ready for reporting.</p>
+            </div>
+            <div class="feature-metrics">
+                <div><strong>{{ stats.total }}</strong><span>Total notes</span></div>
+                <div><strong>{{ stats.public }}</strong><span>Public stories</span></div>
+                <div><strong>{{ stats.pending_review }}</strong><span>Need review</span></div>
+            </div>
+        </section>
+
+        <section class="feature-grid two-columns">
+            <div class="form-card">
+                <h5>Submit a Thank-You Message</h5>
+                <form method="POST">
+                    <div class="form-group">
+                        <label for="title">Title</label>
+                        <input class="form-control" id="title" name="title" maxlength="140" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="application_id">Related Application</label>
+                        <select class="form-control" id="application_id" name="application_id">
+                            <option value="">General message</option>
+                            {% for application in applications %}
+                                <option value="{{ application.id }}">#{{ application.id }} - {{ application.name or 'Application' }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="visibility">Visibility</label>
+                        <select class="form-control" id="visibility" name="visibility">
+                            <option value="private">Private to administrators</option>
+                            <option value="public">Public impact story</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Message</label>
+                        <textarea class="form-control" id="message" name="message" rows="6" required></textarea>
+                    </div>
+                    <button class="btn btn-primary" type="submit"><i class="fas fa-paper-plane"></i> Submit Message</button>
+                </form>
+            </div>
+
+            <div class="activity-panel">
+                <h5>Recent Thank-You Messages</h5>
+                {% for item in messages %}
+                    <article class="activity-item">
+                        <div>
+                            <strong>{{ item.title }}</strong>
+                            <span>{{ item.user.name if item.user else 'Unknown user' }} - {{ item.created_at.strftime('%Y-%m-%d %H:%M') if item.created_at else 'N/A' }}</span>
+                        </div>
+                        <p>{{ item.message }}</p>
+                        <div class="activity-actions">
+                            <span class="status-pill">{{ item.visibility }}</span>
+                            {% if item.reviewed %}
+                                <span class="status-pill success">reviewed</span>
+                            {% elif current_user.role == 'admin' %}
+                                <form method="POST">
+                                    <input type="hidden" name="action" value="mark_reviewed">
+                                    <input type="hidden" name="message_id" value="{{ item.id }}">
+                                    <button class="btn btn-sm btn-outline-primary" type="submit">Mark reviewed</button>
+                                </form>
+                            {% else %}
+                                <span class="status-pill warning">pending review</span>
+                            {% endif %}
+                        </div>
+                    </article>
+                {% else %}
+                    <p class="muted-copy">No thank-you messages yet.</p>
+                {% endfor %}
+            </div>
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='app.js') }}?v=1"></script>
+</body>
+</html>

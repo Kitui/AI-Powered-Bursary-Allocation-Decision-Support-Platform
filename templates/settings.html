@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Bursary Allocation System</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}?v=1">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">Trans Nzoia</div>
+        <ul>
+            <li><a href="{{ url_for('index') }}"><i class="fas fa-home"></i> Home</a></li>
+            {% if current_user.role == 'admin' %}
+                <li><a href="{{ url_for('batch_allocation') }}"><i class="fas fa-file-upload"></i> Batch Allocation</a></li>
+                <li><a href="{{ url_for('single_allocation') }}"><i class="fas fa-user-plus"></i> Single Allocation</a></li>
+                <li><a href="{{ url_for('dashboard') }}"><i class="fas fa-chart-bar"></i> Dashboard</a></li>
+                <li><a href="{{ url_for('allocation_history') }}"><i class="fas fa-clock"></i> Allocation History</a></li>
+            {% endif %}
+            {% if current_user.role == 'applicant' %}
+                <li><a href="{{ url_for('applications') }}"><i class="fas fa-list"></i> Applications</a></li>
+            {% endif %}
+            <li><a href="{{ url_for('profile') }}"><i class="fas fa-user"></i> Profile</a></li>
+            <li class="divider"></li>
+            <li><a href="{{ url_for('thank_yous') }}"><i class="fas fa-heart"></i> Thank You's</a></li>
+            <li><a href="{{ url_for('communications') }}"><i class="fas fa-comments"></i> Communications</a></li>
+            <li class="divider"></li>
+            <li><a href="{{ url_for('support') }}"><i class="fas fa-question-circle"></i> Support</a></li>
+            <li><a href="{{ url_for('settings') }}" class="active"><i class="fas fa-cog"></i> Settings</a></li>
+            <li><a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        </ul>
+    </div>
+
+    <main class="main-content">
+        <div class="header"><i class="fas fa-cog"></i> Settings</div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <section class="feature-hero">
+            <div>
+                <span class="eyebrow">Workspace preferences</span>
+                <h1>Control your profile, notifications, and dashboard defaults.</h1>
+                <p>These preferences are stored against your account and can be updated whenever your workflow changes.</p>
+            </div>
+            <div class="feature-metrics">
+                <div><strong>{{ 'On' if setting.email_notifications else 'Off' }}</strong><span>Email alerts</span></div>
+                <div><strong>{{ 'On' if setting.sms_notifications else 'Off' }}</strong><span>SMS alerts</span></div>
+                <div><strong>{{ setting.theme|capitalize }}</strong><span>Theme</span></div>
+            </div>
+        </section>
+
+        <section class="form-card settings-panel">
+            <form method="POST">
+                <div class="feature-grid three-columns">
+                    <div class="form-group">
+                        <label for="name">Name</label>
+                        <input class="form-control" id="name" name="name" value="{{ current_user.name or '' }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="gender">Gender</label>
+                        <select class="form-control" id="gender" name="gender">
+                            <option value="Male" {% if current_user.gender == 'Male' %}selected{% endif %}>Male</option>
+                            <option value="Female" {% if current_user.gender == 'Female' %}selected{% endif %}>Female</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="ward">Ward</label>
+                        <select class="form-control" id="ward" name="ward">
+                            {% for ward in ['Machewa', 'Kinyoro', 'Saboti', 'Kiminini', 'Cherangany', 'Kwanza', 'Endebess', 'Matisi'] %}
+                                <option value="{{ ward }}" {% if current_user.ward == ward %}selected{% endif %}>{{ ward }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="default_budget">Default Batch Budget (KSh)</label>
+                        <input class="form-control" id="default_budget" name="default_budget" type="number" min="0" step="1000" value="{{ setting.default_budget or 1000000 }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="theme">Theme</label>
+                        <select class="form-control" id="theme" name="theme">
+                            <option value="modern" {% if setting.theme == 'modern' %}selected{% endif %}>Modern</option>
+                            <option value="focused" {% if setting.theme == 'focused' %}selected{% endif %}>Focused</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">New Password</label>
+                        <input class="form-control" id="password" name="password" type="password" placeholder="Leave blank to keep current">
+                    </div>
+                </div>
+
+                <div class="settings-toggles">
+                    <label><input type="checkbox" name="email_notifications" {% if setting.email_notifications %}checked{% endif %}> Email notifications</label>
+                    <label><input type="checkbox" name="sms_notifications" {% if setting.sms_notifications %}checked{% endif %}> SMS notifications</label>
+                    <label><input type="checkbox" name="compact_tables" {% if setting.compact_tables %}checked{% endif %}> Compact dashboard tables</label>
+                </div>
+
+                <button class="btn btn-primary" type="submit"><i class="fas fa-save"></i> Save Settings</button>
+            </form>
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='app.js') }}?v=1"></script>
+</body>
+</html>
