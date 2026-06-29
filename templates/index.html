@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trans Nzoia County Bursary Allocation</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/nouislider.min.css?v=2">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #1a3c34;
+            color: white;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding-top: 20px;
+        }
+        .sidebar .logo {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .sidebar .logo img {
+            width: 40px;
+            margin-right: 10px;
+        }
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .sidebar ul li {
+            padding: 10px 20px;
+        }
+        .sidebar ul li a {
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+        .sidebar ul li a i {
+            margin-right: 10px;
+        }
+        .sidebar ul li a:hover,
+        .sidebar ul li a.active {
+            background-color: #2e5c54;
+            border-radius: 5px;
+        }
+        .sidebar ul li.divider {
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            margin: 10px 0;
+        }
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            width: calc(100% - 250px);
+        }
+        .header {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .stats-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            flex: 1;
+            background-color: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .stat-card i {
+            font-size: 24px;
+            color: #007bff;
+        }
+        .stat-card .progress {
+            height: 10px;
+            margin-top: 10px;
+        }
+        .stat-card .progress-bar {
+            background-color: #28a745;
+        }
+        .chart-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .tasks-row {
+            display: flex;
+            gap: 20px;
+        }
+        .task-card {
+            flex: 1;
+            background-color: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .task-card i {
+            font-size: 24px;
+            color: #ffca28;
+        }
+        .task-card .btn {
+            background-color: #007bff;
+            color: white;
+        }
+        .form-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin-right: -15px;
+            margin-left: -15px;
+        }
+        .form-col {
+            flex: 1;
+            min-width: 300px;
+            padding-right: 15px;
+            padding-left: 15px;
+        }
+        .result-table {
+            margin-top: 20px;
+        }
+        .processing-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .processing-spinner {
+            color: #fff;
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="logo">
+            <img src="https://via.placeholder.com/40" alt="Logo">
+            Trans Nzoia
+        </div>
+        <ul>
+            <li><a href="{{ url_for('index') }}" class="active"><i class="fas fa-home"></i> Home</a></li>
+            {% if current_user.role == 'admin' %}
+                <li><a href="{{ url_for('batch_allocation') }}"><i class="fas fa-file-upload"></i> Batch Allocation</a></li>
+                <li><a href="{{ url_for('single_allocation') }}"><i class="fas fa-user-plus"></i> Single Allocation</a></li>
+                <li><a href="{{ url_for('dashboard') }}"><i class="fas fa-chart-bar"></i> Dashboard</a></li>
+            {% endif %}
+            <li><a href="{{ url_for('profile') }}"><i class="fas fa-user"></i> Profile</a></li>
+            {% if current_user.role == 'applicant' %}
+                <li><a href="{{ url_for('applications') }}"><i class="fas fa-list"></i> Applications</a></li>
+            {% endif %}
+            <li class="divider"></li>
+            <li><a href="#"><i class="fas fa-heart"></i> Thank You's</a></li>
+            <li><a href="#"><i class="fas fa-comments"></i> Communications</a></li>
+            <li class="divider"></li>
+            <li><a href="#"><i class="fas fa-question-circle"></i> Support</a></li>
+            <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+            {% if current_user.is_authenticated %}
+                <li><a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            {% else %}
+                <li><a href="{{ url_for('login') }}"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+                <li><a href="{{ url_for('register') }}"><i class="fas fa-user-plus"></i> Register</a></li>
+            {% endif %}
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Processing Overlay -->
+        <div class="processing-overlay" id="processingOverlay">
+            <div class="processing-spinner">
+                <i class="fas fa-spinner fa-spin"></i> Processing...
+            </div>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="dashboard-section">
+            <div class="header">Welcome, {{ current_user.name if current_user.is_authenticated else 'Guest' }}</div>
+            
+            {% if current_user.role == 'admin' %}
+                <!-- Admin Quick Links -->
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div>
+                            <i class="fas fa-chart-bar"></i>
+                            <div>View Dashboard</div>
+                            <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-sm">Go to Dashboard</a>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div>
+                            <i class="fas fa-file-upload"></i>
+                            <div>Batch Allocation</div>
+                            <a href="{{ url_for('batch_allocation') }}" class="btn btn-primary btn-sm">Perform Batch Allocation</a>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div>
+                            <i class="fas fa-user-plus"></i>
+                            <div>Single Allocation</div>
+                            <a href="{{ url_for('single_allocation') }}" class="btn btn-primary btn-sm">Perform Single Allocation</a>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <!-- Stats Widgets for Stakeholders -->
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div>
+                            <i class="fas fa-dollar-sign"></i>
+                            <div>Total Utilization</div>
+                            <div>$740K of $980K</div>
+                            <div class="progress">
+                                <div class="progress-bar" style="width: 75%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div>
+                            <i class="fas fa-users"></i>
+                            <div>Awarded Students</div>
+                            <div>1,204 of 2,250</div>
+                            <div class="progress">
+                                <div class="progress-bar bg-warning" style="width: 60%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div>
+                            <i class="fas fa-smile"></i>
+                            <div>Thank You's Completed</div>
+                            <div>605 of 1,204</div>
+                            <div class="progress">
+                                <div class="progress-bar bg-purple" style="width: 50%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div>
+                            <i class="fas fa-star"></i>
+                            <div>Review Completion</div>
+                            <div>904 of 904</div>
+                            <div class="progress">
+                                <div class="progress-bar bg-info" style="width: 100%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart -->
+                <div class="chart-card">
+                    <div>Students Awarded</div>
+                    <div>1,204 <span style="color: red;">↓ 2.5%</span></div>
+                    <div style="height: 200px;">
+                        <!-- Placeholder for chart -->
+                        <canvas id="studentsAwardedChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Tasks -->
+                <div class="tasks-row">
+                    <div class="task-card">
+                        <div>
+                            <i class="fas fa-bell"></i>
+                            <div>50 Incomplete Applicants</div>
+                            <div>Send Reminder Now</div>
+                        </div>
+                        <button class="btn btn-sm">Send</button>
+                    </div>
+                    <div class="task-card">
+                        <div>
+                            <i class="fas fa-trophy"></i>
+                            <div>Decide on 215 Outstanding Awards</div>
+                            <div>Due in the next 25 days</div>
+                        </div>
+                        <button class="btn btn-sm">Review</button>
+                    </div>
+                    <div class="task-card">
+                        <div>
+                            <i class="fas fa-smile"></i>
+                            <div>Review new 589 Outstanding Thank You Messages</div>
+                            <div>Due in the next 60 days</div>
+                        </div>
+                        <button class="btn btn-sm">Review</button>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="/static/nouislider.min.js?v=2"></script>
+    <script src="/static/chart.min.js?v=2"></script>
+    <script>
+        // Placeholder Chart (Students Awarded)
+        const ctx = document.getElementById('studentsAwardedChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7', 'W8', 'W9', 'W10', 'W11', 'W12'],
+                datasets: [{
+                    label: 'Students Awarded',
+                    data: [100, 80, 120, 90, 110, 70, 130, 100, 90, 80, 110, 90],
+                    backgroundColor: '#007bff',
+                    borderColor: '#0056b3',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                maintainAspectRatio: false
+            }
+        });
+    </script>
+</body>
+</html>

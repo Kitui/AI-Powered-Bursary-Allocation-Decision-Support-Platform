@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Applications - Bursary Allocation System</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #1a3c34;
+            color: white;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding-top: 20px;
+        }
+        .sidebar .logo {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .sidebar .logo img {
+            width: 40px;
+            margin-right: 10px;
+        }
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .sidebar ul li {
+            padding: 10px 20px;
+        }
+        .sidebar ul li a {
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+        .sidebar ul li a i {
+            margin-right: 10px;
+        }
+        .sidebar ul li a:hover,
+        .sidebar ul li a.active {
+            background-color: #2e5c54;
+            border-radius: 5px;
+        }
+        .sidebar ul li.divider {
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            margin: 10px 0;
+        }
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            width: calc(100% - 250px);
+        }
+        .header {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .btn-primary {
+            background-color: #1a3c34;
+            border-color: #1a3c34;
+        }
+        .btn-primary:hover {
+            background-color: #2e5c54;
+            border-color: #2e5c54;
+        }
+        .history-table {
+            margin-top: 30px;
+        }
+        .table-responsive {
+            overflow-x: auto;
+        }
+        .table th, .table td {
+            white-space: nowrap;
+        }
+        .table th {
+            background-color: #1a3c34;
+            color: white;
+        }
+        .status-pending { color: #ffca28; }
+        .status-approved { color: #28a745; }
+        .status-declined { color: #dc3545; }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="logo">
+            <img src="https://via.placeholder.com/40" alt="Logo">
+            Trans Nzoia
+        </div>
+        <ul>
+            <li><a href="{{ url_for('index') }}"><i class="fas fa-home"></i> Home</a></li>
+            <li><a href="{{ url_for('applications') }}" class="active"><i class="fas fa-list"></i> Applications</a></li>
+            <li><a href="{{ url_for('profile') }}"><i class="fas fa-user"></i> Profile</a></li>
+            <li class="divider"></li>
+            <li><a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">Bursary Applications</div>
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Apply for Bursary Button -->
+        <div>
+            <a href="{{ url_for('submit_application') }}" class="btn btn-primary">Apply for Bursary</a>
+        </div>
+
+        <!-- Application History -->
+        <div class="history-table">
+            <h5>Application History</h5>
+            {% if all_applications %}
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Application ID</th>
+                                <th>Name</th>
+                                <th>Academic Level</th>
+                                <th>Amount Applied (KSh)</th>
+                                <th>Financial Need Score (%)</th>
+                                <th>Allocated Amount (KSh)</th>
+                                <th>Status</th>
+                                <th>Submitted At</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody">
+                            {% for app in all_applications %}
+                                {% set allocation = app.allocations.first() %}
+                                <tr data-app-id="{{ app.id }}">
+                                    <td>{{ app.id }}</td>
+                                    <td>{{ app.name }}</td>
+                                    <td>{{ app.academic_level }}</td>
+                                    <td>{{ app.amount_applied }}</td>
+                                    <td>{{ (allocation.financial_need_score * 100) | round(2) if allocation else 0 }}</td>
+                                    <td class="allocated-amount">{{ allocation.allocated_amount if allocation else 0 }}</td>
+                                    <td class="status status-{{ app.status }}">{{ app.status | capitalize }}</td>
+                                    <td>{{ app.submitted_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p>No application history available.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Check if there's a submission success message and refresh the page
+            const successMessage = $('.alert-success');
+            if (successMessage.length) {
+                setTimeout(() => {
+                    window.location.href = '{{ url_for("applications") }}';
+                }, 2000); // Refresh after 2 seconds to allow the user to see the success message
+            }
+
+            // Function to update application statuses in the history table
+            function updateApplicationStatuses() {
+                $('#historyTableBody tr').each(function() {
+                    const appId = $(this).data('app-id');
+                    $.ajax({
+                        url: '{{ url_for("application_status") }}',
+                        type: 'GET',
+                        data: { application_id: appId },
+                        success: function(response) {
+                            const row = $(`tr[data-app-id="${appId}"]`);
+                            const statusCell = row.find('.status');
+                            const allocatedAmountCell = row.find('.allocated-amount');
+                            if (response.status) {
+                                statusCell.text(response.status.charAt(0).toUpperCase() + response.status.slice(1));
+                                statusCell.removeClass('status-pending status-approved status-declined');
+                                statusCell.addClass('status-' + response.status.toLowerCase());
+                                allocatedAmountCell.text(response.allocated_amount || 0);
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Error checking status for application ID ' + appId + ':', error);
+                        }
+                    });
+                });
+            }
+
+            // Start polling for status updates
+            function startStatusPolling() {
+                updateApplicationStatuses();
+                setTimeout(startStatusPolling, 5000); // Poll every 5 seconds
+            }
+
+            // Initial update and start polling
+            if ($('#historyTableBody tr').length > 0) {
+                startStatusPolling();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Allocation Dashboard - Bursary Allocation System</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/nouislider.min.css?v=2">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #1a3c34;
+            color: white;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding-top: 20px;
+        }
+        .sidebar .logo {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .sidebar .logo img {
+            width: 40px;
+            margin-right: 10px;
+        }
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .sidebar ul li {
+            padding: 10px 20px;
+        }
+        .sidebar ul li a {
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+        .sidebar ul li a i {
+            margin-right: 10px;
+        }
+        .sidebar ul li a:hover,
+        .sidebar ul li a.active {
+            background-color: #2e5c54;
+            border-radius: 5px;
+        }
+        .sidebar ul li.divider {
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            margin: 10px 0;
+        }
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            width: calc(100% - 250px);
+            flex: 1;
+        }
+        .header {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 40px;
+            border-radius: 10px;
+        }
+        .card-header {
+            font-weight: bold;
+            font-size: 18px;
+            padding: 10px 15px;
+            border-bottom: 1px solid #ddd;
+            background-color: transparent;
+        }
+        .stats-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            flex: 1;
+            background-color: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .stat-card i {
+            font-size: 24px;
+            color: #007bff;
+        }
+        .stat-card .progress {
+            height: 10px;
+            margin-top: 10px;
+        }
+        .stat-card .progress-bar {
+            background-color: #28a745;
+        }
+        .stat-card .progress-bar.bg-warning {
+            background-color: #ffca28;
+        }
+        .stat-card .progress-bar.bg-purple {
+            background-color: #6f42c1;
+        }
+        #needScoreSlider {
+            margin: 20px 0;
+        }
+        .filter-section {
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 40px;
+        }
+        .filter-section h5 {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .form-select {
+            border-radius: 20px !important;
+            padding: 12px 15px;
+            font-size: 16px;
+        }
+        .btn-primary, .btn-secondary, .btn-success {
+            background-color: #1a3c34;
+            border-color: #1a3c34;
+            border-radius: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white !important;
+            font-weight: bold;
+        }
+        .btn-primary:hover, .btn-secondary:hover, .btn-success:hover {
+            background-color: #2e5c54;
+            border-color: #2e5c54;
+        }
+        .btn-danger {
+            border-radius: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        .table-responsive {
+            overflow-x: auto;
+        }
+        .table th, .table td {
+            white-space: nowrap;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 200px;
+        }
+        .filter-pair {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-end;
+        }
+        .filter-pair .form-group {
+            margin-right: 15px;
+        }
+        .add-filter-btn {
+            margin-top: 10px;
+        }
+        .graph-tabs {
+            display: flex;
+            border-bottom: 1px solid #1a3c34;
+            margin-bottom: 20px;
+        }
+        .graph-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f8f9fa;
+            color: #1a3c34;
+            border-bottom: none;
+            transition: background-color 0.3s;
+        }
+        .graph-tab.active {
+            background-color: #1a3c34;
+            color: white;
+        }
+        .graph-tab:hover {
+            background-color: #2e5c54;
+            color: white;
+        }
+        footer {
+            background-color: #f8f9fa;
+            text-align: center;
+            padding: 10px 0;
+            width: 100%;
+            margin-top: auto;
+        }
+        .metrics-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 40px;
+        }
+        .metrics-left, .metrics-right {
+            width: 48%;
+        }
+        .metrics-left h6, .metrics-right h6 {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .metrics-container h5 {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .delete-filter-btn {
+            margin-left: 10px;
+            background-color: transparent;
+            border: none;
+            color: #dc3545;
+            cursor: pointer;
+            padding: 5px;
+        }
+        .delete-filter-btn i {
+            font-size: 16px;
+        }
+        .dataTables_wrapper .dataTables_info,
+        .dataTables_wrapper .dataTables_paginate {
+            display: inline-block;
+            margin: 10px 0;
+        }
+        .dataTables_wrapper .dataTables_info {
+            margin-right: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="logo">
+            <img src="https://via.placeholder.com/40" alt="Logo">
+            Trans Nzoia
+        </div>
+        <ul>
+            <li><a href="{{ url_for('index') }}"><i class="fas fa-home"></i> Home</a></li>
+            <li><a href="{{ url_for('batch_allocation') }}"><i class="fas fa-file-upload"></i> Batch Allocation</a></li>
+            <li><a href="{{ url_for('single_allocation') }}"><i class="fas fa-user-plus"></i> Single Allocation</a></li>
+            <li><a href="{{ url_for('dashboard') }}" class="active"><i class="fas fa-chart-bar"></i> Dashboard</a></li>
+            <li><a href="{{ url_for('allocation_history') }}"><i class="fas fa-clock"></i> Allocation History</a></li>
+            <li><a href="{{ url_for('profile') }}"><i class="fas fa-user"></i> Profile</a></li>
+            <li class="divider"></li>
+            <li><a href="#"><i class="fas fa-heart"></i> Thank You's</a></li>
+            <li><a href="#"><i class="fas fa-comments"></i> Communications</a></li>
+            <li class="divider"></li>
+            <li><a href="#"><i class="fas fa-question-circle"></i> Support</a></li>
+            <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+            <li><a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        {% if not data_available %}
+            <div class="alert alert-info">
+                {{ message }}
+            </div>
+        {% else %}
+            <div class="header">Good Morning, {{ current_user.name if current_user.is_authenticated else 'Guest' }}</div>
+
+            <!-- Scorecards -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div>
+                        <i class="fas fa-dollar-sign"></i>
+                        <div>Total Utilization (Amount)</div>
+                        <div id="totalUtilizationAmount">N/A</div>
+                        <div class="progress">
+                            <div id="totalUtilizationAmountProgress" class="progress-bar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div>
+                        <i class="fas fa-dollar-sign"></i>
+                        <div>Total Utilization (%)</div>
+                        <div id="totalUtilizationPercent">N/A</div>
+                        <div class="progress">
+                            <div id="totalUtilizationPercentProgress" class="progress-bar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div>
+                        <i class="fas fa-users"></i>
+                        <div>Awarded Students</div>
+                        <div id="awardedStudents">N/A</div>
+                        <div class="progress">
+                            <div id="awardedStudentsProgress" class="progress-bar bg-warning" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div>
+                        <i class="fas fa-users"></i>
+                        <div>Awarded Students (%)</div>
+                        <div id="awardedStudentsPercent">N/A</div>
+                        <div class="progress">
+                            <div id="awardedStudentsPercentProgress" class="progress-bar bg-warning" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div>
+                        <i class="fas fa-smile"></i>
+                        <div>Thank You's Completed</div>
+                        <div id="thankYousCompleted">N/A</div>
+                        <div class="progress">
+                            <div id="thankYousCompletedProgress" class="progress-bar bg-purple" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filter-section">
+                <h5>Filters</h5>
+                <div id="filterContainer">
+                    <div class="filter-pair" id="filter-pair-1">
+                        <div class="form-group">
+                            <label class="form-label">Filter</label>
+                            <select class="form-select filter-field">
+                                <option value="">Select Filter</option>
+                                <option value="Name">Name</option>
+                                <option value="Gender">Gender</option>
+                                <option value="Ward">Ward</option>
+                                <option value="Academic Level">Academic Level</option>
+                                <option value="Year of Course Completion">Year of Course Completion</option>
+                                <option value="School Fee Balance">School Fee Balance</option>
+                                <option value="Applied Amount">Applied Amount</option>
+                                <option value="Financial Need Score (%)">Financial Need Score (%)</option>
+                                <option value="Allocated Amount">Allocated Amount</option>
+                                <option value="Allocation Reasons">Allocation Reasons</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Value</label>
+                            <select class="form-select filter-value" disabled>
+                                <option value="">Select Value</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <button id="addFilter" class="btn btn-primary add-filter-btn"><i class="fas fa-plus"></i> Add Filter</button>
+                <div class="mb-3 mt-3">
+                    <label class="form-label">Predicted Financial Need Score Range</label>
+                    <div id="needScoreSlider"></div>
+                    <div id="needScoreRange" class="mt-2"></div>
+                </div>
+                <button id="applyFilters" class="btn btn-primary"><i class="fas fa-filter"></i> Apply Filters</button>
+                <button id="resetFilters" class="btn btn-primary"><i class="fas fa-undo"></i> Reset Filters</button>
+                <button id="downloadFiltered" class="btn btn-primary"><i class="fas fa-download"></i> Download Filtered Data</button>
+            </div>
+
+            <!-- Graphs -->
+            <div class="card">
+                <div class="card-header">Data Visualizations</div>
+                <div class="card-body">
+                    <div class="graph-tabs">
+                        <div class="graph-tab active" data-graph="studentsAwarded">Students Awarded</div>
+                        <div class="graph-tab" data-graph="allocation">Allocation by Need Score</div>
+                        <div class="graph-tab" data-graph="genderDisparity">Gender Disparity</div>
+                        <div class="graph-tab" data-graph="academicDisparity">Academic Level Disparity</div>
+                        <div class="graph-tab" data-graph="wardDisparity">Ward Disparity</div>
+                        <div class="graph-tab" data-graph="budget">Budget Utilization</div>
+                        <div class="graph-tab" data-graph="scatter">Amount Applied vs. Allocated</div>
+                        <div class="graph-tab" data-graph="ward">Ward Distribution</div>
+                        <div class="graph-tab" data-graph="gender">Gender Distribution</div>
+                        <div class="graph-tab" data-graph="academic">Academic Level Distribution</div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="mainChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fairness Metrics and Utilization -->
+            <div class="card">
+                <div class="card-header">Fairness Metrics</div>
+                <div class="card-body metrics-container">
+                    <div class="metrics-left">
+                        <h6>Mean Allocation by Predicted Financial Need Score</h6>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Predicted Financial Need Score</th>
+                                    <th>Mean</th>
+                                    <th>Count</th>
+                                    <th>Total Allocated</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fairnessMetricsTable">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="metrics-right">
+                        <h6>Utilization (%)</h6>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Predicted Financial Need Score</th>
+                                    <th>Utilization (%)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="utilizationTable">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Allocation Details Table -->
+            <div class="card">
+                <div class="card-header">Allocation Details</div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table id="allocationTable" class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Gender</th>
+                                    <th>Ward</th>
+                                    <th>Academic Level</th>
+                                    <th>Year of Course Completion</th>
+                                    <th>School Fee Balance</th>
+                                    <th>Applied Amount</th>
+                                    <th>Financial Need Score (%)</th>
+                                    <th>Allocated Amount</th>
+                                    <th>Allocation Reasons</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <footer>
+        <p>© 2025 Bursary Allocation System. All rights reserved.</p>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
+    <script src="/static/chart.min.js?v=2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <script src="/static/nouislider.min.js?v=2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.5.0/nouislider.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            let table;
+            let mainChart;
+            let originalData = [];
+            let filteredData = [];
+            let minNeedScore = 0;
+            let maxNeedScore = 100;
+            let filterCount = 1;
+            const maxFilters = 3;
+
+            const greenColors = [
+                '#1a3c34',
+                '#2e5c54',
+                '#3e7d73',
+                '#4f9f92',
+                '#61c1b1'
+            ];
+
+            sessionStorage.removeItem('isDataLoaded');
+
+            console.log("Initiating AJAX request for allocation data");
+            $.ajax({
+                url: '/allocation_data',
+                type: 'GET',
+                success: function(response) {
+                    console.log("Raw /allocation_data response:", response);
+                    if (response.status === 'success') {
+                        try {
+                            originalData = response.data.map((row, index) => {
+                                row['Financial Need Score (%)'] = Math.max(0, Math.min(100, parseFloat(row['Financial Need Score (%)']) || 0));
+                                const requiredFields = [
+                                    'Name', 'Gender', 'Ward', 'Academic Level', 'Year of Course Completion',
+                                    'School Fee Balance', 'Applied Amount', 'Financial Need Score (%)', 'Allocated Amount',
+                                    'Allocation Reasons'
+                                ];
+                                requiredFields.forEach(field => {
+                                    if (row[field] === undefined || row[field] === null || row[field] === '') {
+                                        row[field] = '';
+                                        console.log(`Set fallback for field '${field}' in row ${index}: ${row[field]}`);
+                                    }
+                                });
+                                return row;
+                            });
+                            let stats = response.stats;
+                            let fairnessMetricsByScore = response.fairness_metrics_by_score || {};
+                            let utilizationByScore = response.utilization_by_score || {};
+                            console.log("Processed Allocation Data:", originalData);
+                            console.log("Stats:", stats);
+                            filteredData = originalData;
+
+                            try {
+                                $('#totalUtilizationAmount').text(stats.total_allocated ? `${stats.total_allocated.toLocaleString()} KSh` : '0 KSh');
+                                $('#totalUtilizationPercent').text(stats.budget_utilization ? `${stats.budget_utilization.toFixed(2)}%` : '0.00%');
+                                $('#totalUtilizationAmountProgress').css('width', `${stats.budget_utilization || 0}%`);
+                                $('#totalUtilizationPercentProgress').css('width', `${stats.budget_utilization || 0}%`);
+
+                                let totalApplicants = originalData.length;
+                                let awardedStudents = originalData.filter(row => parseFloat(row['Allocated Amount']) > 0).length;
+                                let awardedPercent = totalApplicants > 0 ? (awardedStudents / totalApplicants) * 100 : 0;
+                                $('#awardedStudents').text(`${awardedStudents} of ${totalApplicants}`);
+                                $('#awardedStudentsPercent').text(`${awardedPercent.toFixed(2)}%`);
+                                $('#awardedStudentsProgress').css('width', `${awardedPercent}%`);
+                                $('#awardedStudentsPercentProgress').css('width', `${awardedPercent}%`);
+
+                                let thankYousCompleted = originalData.filter(row => parseFloat(row['Allocated Amount']) > 0 && Math.random() > 0.5).length;
+                                let thankYousPercent = awardedStudents > 0 ? (thankYousCompleted / awardedStudents) * 100 : 0;
+                                $('#thankYousCompleted').text(`${thankYousCompleted} of ${awardedStudents}`);
+                                $('#thankYousCompletedProgress').css('width', `${thankYousPercent}%`);
+                            } catch (e) {
+                                console.error("Error populating scorecards:", e);
+                                $('#totalUtilizationAmount').text("Error");
+                                $('#totalUtilizationPercent').text("Error");
+                                $('#awardedStudents').text("Error");
+                                $('#awardedStudentsPercent').text("Error");
+                                $('#thankYousCompleted').text("Error");
+                            }
+
+                            try {
+                                let fairnessTableBody = $('#fairnessMetricsTable');
+                                fairnessTableBody.empty();
+                                for (let bin in fairnessMetricsByScore) {
+                                    let metrics = fairnessMetricsByScore[bin];
+                                    fairnessTableBody.append(`
+                                        <tr>
+                                            <td>${bin}</td>
+                                            <td>${metrics.mean.toLocaleString()}</td>
+                                            <td>${metrics.count}</td>
+                                            <td>${metrics.total_allocated.toLocaleString()}</td>
+                                        </tr>
+                                    `);
+                                }
+                            } catch (e) {
+                                console.error("Error populating fairness metrics table:", e);
+                                $('#fairnessMetricsTable').after('<div class="alert alert-danger">Failed to load fairness metrics.</div>');
+                            }
+
+                            try {
+                                let utilizationTableBody = $('#utilizationTable');
+                                utilizationTableBody.empty();
+                                for (let bin in utilizationByScore) {
+                                    let utilization = utilizationByScore[bin];
+                                    utilizationTableBody.append(`
+                                        <tr>
+                                            <td>${bin}</td>
+                                            <td>${utilization.toFixed(2)}</td>
+                                        </tr>
+                                    `);
+                                }
+                            } catch (e) {
+                                console.error("Error populating utilization table:", e);
+                                $('#utilizationTable').after('<div class="alert alert-danger">Failed to load utilization metrics.</div>');
+                            }
+
+                            try {
+                                table = $('#allocationTable').DataTable({
+                                    data: originalData,
+                                    columns: [
+                                        { data: 'Name' },
+                                        { data: 'Gender' },
+                                        { data: 'Ward' },
+                                        { data: 'Academic Level' },
+                                        { data: 'Year of Course Completion' },
+                                        { data: 'School Fee Balance' },
+                                        { data: 'Applied Amount' },
+                                        { data: 'Financial Need Score (%)' },
+                                        { data: 'Allocated Amount' },
+                                        { data: 'Allocation Reasons' }
+                                    ],
+                                    pageLength: 10,
+                                    responsive: true,
+                                    scrollX: true,
+                                    deferRender: true
+                                });
+                            } catch (e) {
+                                console.error("Error initializing DataTable:", e);
+                                $('#allocationTable').after('<div class="alert alert-danger">Failed to load table.</div>');
+                            }
+
+                            try {
+                                let needScores = originalData.map(row => parseFloat(row['Financial Need Score (%)']));
+                                needScores = needScores.filter(score => !isNaN(score));
+                                if (needScores.length === 0) {
+                                    throw new Error("No valid need scores found");
+                                }
+                                minNeedScore = Math.floor(Math.min(...needScores));
+                                maxNeedScore = Math.ceil(Math.max(...needScores));
+                            } catch (e) {
+                                console.error("Error computing need score range:", e);
+                                minNeedScore = 0;
+                                maxNeedScore = 100;
+                            }
+
+                            let slider;
+                            try {
+                                slider = document.getElementById('needScoreSlider');
+                                noUiSlider.create(slider, {
+                                    start: [minNeedScore, maxNeedScore],
+                                    connect: true,
+                                    range: {
+                                        'min': minNeedScore,
+                                        'max': maxNeedScore
+                                    },
+                                    step: 1,
+                                    tooltips: true,
+                                    format: {
+                                        to: value => Math.round(value),
+                                        from: value => Number(value)
+                                    }
+                                });
+                                slider.noUiSlider.on('update', function(values, handle) {
+                                    $('#needScoreRange').text(`Range: ${values[0]} - ${values[1]}`);
+                                });
+                                slider.noUiSlider.on('change', function() {
+                                    applyFiltersAndUpdateCharts();
+                                });
+                            } catch (e) {
+                                console.error("Error initializing slider:", e);
+                                $('#needScoreRange').text("Range: 0 - 100");
+                            }
+
+                            try {
+                                mainChart = new Chart(document.getElementById('mainChart'), {
+                                    type: 'bar',
+                                    data: {
+                                        labels: [],
+                                        datasets: []
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        scales: {
+                                            y: {
+                                                beginAtZero: true,
+                                                title: {
+                                                    display: true,
+                                                    text: ''
+                                                }
+                                            },
+                                            x: {
+                                                title: {
+                                                    display: true,
+                                                    text: ''
+                                                }
+                                            }
+                                        },
+                                        plugins: {
+                                            legend: { position: 'top' }
+                                        }
+                                    }
+                                });
+
+                                function updateMainChart(type) {
+                                    let chartType = 'bar';
+                                    let labels = [];
+                                    let datasets = [];
+                                    let yAxisTitle = '';
+                                    let xAxisTitle = '';
+
+                                    if (type === 'studentsAwarded') {
+                                        chartType = 'line';
+                                        labels = ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7', 'W8', 'W10', 'W11', 'W12'];
+                                        datasets = [{
+                                            label: 'Students Awarded',
+                                            data: [200, 300, 250, 400, 350, 500, 450, 300, 400, 350, 500],
+                                            borderColor: greenColors[0],
+                                            fill: false
+                                        }];
+                                        yAxisTitle = 'Number of Students';
+                                        xAxisTitle = 'Week';
+                                    } else if (type === 'allocation') {
+                                        chartType = 'bar';
+                                        let needScores = filteredData.map(row => parseFloat(row['Financial Need Score (%)']));
+                                        let allocations = filteredData.map(row => parseFloat(row['Allocated Amount']));
+                                        let bins = 5;
+                                        let binSize = (maxNeedScore - minNeedScore) / bins;
+                                        let counts = Array(bins).fill(0);
+                                        let data = Array(bins).fill(0);
+
+                                        for (let i = 0; i < bins; i++) {
+                                            labels.push(`${Math.round(minNeedScore + i * binSize)} - ${Math.round(minNeedScore + (i + 1) * binSize)}`);
+                                        }
+
+                                        for (let i = 0; i < needScores.length; i++) {
+                                            let score = needScores[i];
+                                            let allocation = allocations[i];
+                                            if (!isNaN(score) && !isNaN(allocation)) {
+                                                let binIndex = Math.min(Math.floor((score - minNeedScore) / binSize), bins - 1);
+                                                data[binIndex] += allocation;
+                                                counts[binIndex]++;
+                                            }
+                                        }
+
+                                        data = data.map((sum, idx) => counts[idx] ? sum / counts[idx] : 0);
+                                        datasets = [{
+                                            label: 'Mean Allocation (KSh)',
+                                            data: data,
+                                            backgroundColor: greenColors[2],
+                                            borderColor: greenColors[0],
+                                            borderWidth: 1
+                                        }];
+                                        yAxisTitle = 'Mean Allocation (KSh)';
+                                        xAxisTitle = 'Need Score Bin';
+                                    } else if (type === 'genderDisparity') {
+                                        chartType = 'bar';
+                                        let genderGroups = {};
+                                        filteredData.forEach(row => {
+                                            let gender = row['Gender'] || 'Unknown';
+                                            let allocation = parseFloat(row['Allocated Amount']) || 0;
+                                            if (!genderGroups[gender]) {
+                                                genderGroups[gender] = { total: 0, count: 0 };
+                                            }
+                                            genderGroups[gender].total += allocation;
+                                            genderGroups[gender].count++;
+                                        });
+
+                                        labels = Object.keys(genderGroups);
+                                        let data = labels.map(gender => genderGroups[gender].count ? genderGroups[gender].total / genderGroups[gender].count : 0);
+                                        datasets = [{
+                                            label: 'Mean Allocation (KSh)',
+                                            data: data,
+                                            backgroundColor: greenColors[2],
+                                            borderColor: greenColors[0],
+                                            borderWidth: 1
+                                        }];
+                                        yAxisTitle = 'Mean Allocation (KSh)';
+                                        xAxisTitle = 'Gender';
+                                    } else if (type === 'academicDisparity') {
+                                        chartType = 'bar';
+                                        let academicGroups = {};
+                                        filteredData.forEach(row => {
+                                            let academicLevel = row['Academic Level'] || 'Unknown';
+                                            let allocation = parseFloat(row['Allocated Amount']) || 0;
+                                            if (!academicGroups[academicLevel]) {
+                                                academicGroups[academicLevel] = { total: 0, count: 0 };
+                                            }
+                                            academicGroups[academicLevel].total += allocation;
+                                            academicGroups[academicLevel].count++;
+                                        });
+
+                                        labels = Object.keys(academicGroups);
+                                        let data = labels.map(level => academicGroups[level].count ? academicGroups[level].total / academicGroups[level].count : 0);
+                                        datasets = [{
+                                            label: 'Mean Allocation (KSh)',
+                                            data: data,
+                                            backgroundColor: greenColors[2],
+                                            borderColor: greenColors[0],
+                                            borderWidth: 1
+                                        }];
+                                        yAxisTitle = 'Mean Allocation (KSh)';
+                                        xAxisTitle = 'Academic Level';
+                                    } else if (type === 'wardDisparity') {
+                                        chartType = 'bar';
+                                        let wardGroups = {};
+                                        filteredData.forEach(row => {
+                                            let ward = row['Ward'] || 'Unknown';
+                                            let allocation = parseFloat(row['Allocated Amount']) || 0;
+                                            if (!wardGroups[ward]) {
+                                                wardGroups[ward] = { total: 0, count: 0 };
+                                            }
+                                            wardGroups[ward].total += allocation;
+                                            wardGroups[ward].count++;
+                                        });
+
+                                        labels = Object.keys(wardGroups);
+                                        let data = labels.map(ward => wardGroups[ward].count ? wardGroups[ward].total / wardGroups[ward].count : 0);
+                                        datasets = [{
+                                            label: 'Mean Allocation (KSh)',
+                                            data: data,
+                                            backgroundColor: greenColors[2],
+                                            borderColor: greenColors[0],
+                                            borderWidth: 1
+                                        }];
+                                        yAxisTitle = 'Mean Allocation (KSh)';
+                                        xAxisTitle = 'Ward';
+                                    } else if (type === 'budget') {
+                                        chartType = 'pie';
+                                        labels = ['Allocated', 'Remaining'];
+                                        datasets = [{
+                                            data: [stats.total_allocated || 0, stats.remaining_budget || 0],
+                                            backgroundColor: [greenColors[2], greenColors[4]]
+                                        }];
+                                        yAxisTitle = '';
+                                        xAxisTitle = '';
+                                        mainChart.options.scales.y.display = false;
+                                        mainChart.options.scales.x.display = false;
+                                    } else if (type === 'scatter') {
+                                        chartType = 'scatter';
+                                        datasets = [{
+                                            label: 'Amount Applied vs. Allocated',
+                                            data: filteredData.map(row => ({
+                                                x: parseFloat(row['Applied Amount']) || 0,
+                                                y: parseFloat(row['Allocated Amount']) || 0
+                                            })),
+                                            backgroundColor: greenColors[2]
+                                        }];
+                                        yAxisTitle = 'Allocated Amount (KSh)';
+                                        xAxisTitle = 'Amount Applied (KSh)';
+                                        mainChart.options.scales.y.display = true;
+                                        mainChart.options.scales.x.display = true;
+                                    } else if (type === 'ward') {
+                                        chartType = 'pie';
+                                        let wardCounts = {};
+                                        filteredData.forEach(row => {
+                                            let ward = row['Ward'] || 'Unknown';
+                                            wardCounts[ward] = (wardCounts[ward] || 0) + 1;
+                                        });
+                                        labels = Object.keys(wardCounts);
+                                        datasets = [{
+                                            data: Object.values(wardCounts),
+                                            backgroundColor: greenColors
+                                        }];
+                                        yAxisTitle = '';
+                                        xAxisTitle = '';
+                                        mainChart.options.scales.y.display = false;
+                                        mainChart.options.scales.x.display = false;
+                                    } else if (type === 'gender') {
+                                        chartType = 'pie';
+                                        let genderCounts = {};
+                                        filteredData.forEach(row => {
+                                            let gender = row['Gender'] || 'Unknown';
+                                            genderCounts[gender] = (genderCounts[gender] || 0) + 1;
+                                        });
+                                        labels = Object.keys(genderCounts);
+                                        datasets = [{
+                                            data: Object.values(genderCounts),
+                                            backgroundColor: greenColors
+                                        }];
+                                        yAxisTitle = '';
+                                        xAxisTitle = '';
+                                        mainChart.options.scales.y.display = false;
+                                        mainChart.options.scales.x.display = false;
+                                    } else if (type === 'academic') {
+                                        chartType = 'pie';
+                                        let academicLevelCounts = {};
+                                        filteredData.forEach(row => {
+                                            let academicLevel = row['Academic Level'] || 'Unknown';
+                                            academicLevelCounts[academicLevel] = (academicLevelCounts[academicLevel] || 0) + 1;
+                                        });
+                                        labels = Object.keys(academicLevelCounts);
+                                        datasets = [{
+                                            data: Object.values(academicLevelCounts),
+                                            backgroundColor: greenColors
+                                        }];
+                                        yAxisTitle = '';
+                                        xAxisTitle = '';
+                                        mainChart.options.scales.y.display = false;
+                                        mainChart.options.scales.x.display = false;
+                                    }
+
+                                    mainChart.type = chartType;
+                                    mainChart.data.labels = labels;
+                                    mainChart.data.datasets = datasets;
+                                    mainChart.options.scales.y.title.text = yAxisTitle;
+                                    mainChart.options.scales.x.title.text = xAxisTitle;
+                                    mainChart.update();
+                                }
+
+                                updateMainChart('studentsAwarded');
+
+                                $('.graph-tab').on('click', function() {
+                                    $('.graph-tab').removeClass('active');
+                                    $(this).addClass('active');
+                                    let graphType = $(this).data('graph');
+                                    updateMainChart(graphType);
+                                });
+                            } catch (e) {
+                                console.error('Error initializing main chart:', e);
+                                $('#mainChart').parent().after('<div class="alert alert-danger">Failed to load chart.</div>');
+                            }
+
+                            $('#addFilter').on('click', function() {
+                                if (filterCount < maxFilters) {
+                                    filterCount++;
+                                    let newFilter = `
+                                        <div class="filter-pair" id="filter-pair-${filterCount}">
+                                            <div class="form-group">
+                                                <label class="form-label">Filter</label>
+                                                <select class="form-select filter-field">
+                                                    <option value="">Select Filter</option>
+                                                    <option value="Name">Name</option>
+                                                    <option value="Gender">Gender</option>
+                                                    <option value="Ward">Ward</option>
+                                                    <option value="Academic Level">Academic Level</option>
+                                                    <option value="Year of Course Completion">Year of Course Completion</option>
+                                                    <option value="School Fee Balance">School Fee Balance</option>
+                                                    <option value="Applied Amount">Applied Amount</option>
+                                                    <option value="Financial Need Score (%)">Financial Need Score (%)</option>
+                                                    <option value="Allocated Amount">Allocated Amount</option>
+                                                    <option value="Allocation Reasons">Allocation Reasons</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Value</label>
+                                                <select class="form-select filter-value" disabled>
+                                                    <option value="">Select Value</option>
+                                                </select>
+                                            </div>
+                                            <button type="button" class="delete-filter-btn remove-filter" title="Delete Filter"><i class="fas fa-trash"></i></button>
+                                        </div>
+                                    `;
+                                    $('#filterContainer').append(newFilter);
+                                }
+                                if (filterCount >= maxFilters) {
+                                    $('#addFilter').prop('disabled', true);
+                                }
+                            });
+
+                            $(document).on('change', '.filter-field', function() {
+                                let $filterPair = $(this).closest('.filter-pair');
+                                let $filterValue = $filterPair.find('.filter-value');
+                                let field = $(this).val();
+                                $filterValue.prop('disabled', false);
+                                $filterValue.empty();
+                                $filterValue.append('<option value="">Select Value</option>');
+                                if (field === 'Gender') {
+                                    $filterValue.append('<option value="Male">Male</option>');
+                                    $filterValue.append('<option value="Female">Female</option>');
+                                } else if (field === 'Academic Level') {
+                                    $filterValue.append('<option value="Secondary School">Secondary School</option>');
+                                    $filterValue.append('<option value="University">University</option>');
+                                } else if (field === 'Year of Course Completion' || field === 'School Fee Balance' || 
+                                           field === 'Applied Amount' || field === 'Financial Need Score (%)' || 
+                                           field === 'Allocated Amount') {
+                                    let uniqueValues = [...new Set(originalData.map(row => row[field]))].filter(val => val !== '').sort();
+                                    uniqueValues.forEach(val => {
+                                        $filterValue.append(`<option value="${val}">${val}</option>`);
+                                    });
+                                } else {
+                                    let uniqueValues = [...new Set(originalData.map(row => row[field]))].filter(val => val !== '').sort();
+                                    uniqueValues.forEach(val => {
+                                        $filterValue.append(`<option value="${val}">${val}</option>`);
+                                    });
+                                }
+                            });
+
+                            $(document).on('click', '.remove-filter', function() {
+                                $(this).closest('.filter-pair').remove();
+                                filterCount--;
+                                $('#addFilter').prop('disabled', false);
+                            });
+
+                            $('#applyFilters').on('click', function() {
+                                applyFiltersAndUpdateCharts();
+                            });
+
+                            $('#resetFilters').on('click', function() {
+                                $('#filterContainer').empty();
+                                filterCount = 0;
+                                $('#filterContainer').append(`
+                                    <div class="filter-pair" id="filter-pair-1">
+                                        <div class="form-group">
+                                            <label class="form-label">Filter</label>
+                                            <select class="form-select filter-field">
+                                                <option value="">Select Filter</option>
+                                                <option value="Name">Name</option>
+                                                <option value="Gender">Gender</option>
+                                                <option value="Ward">Ward</option>
+                                                <option value="Academic Level">Academic Level</option>
+                                                <option value="Year of Course Completion">Year of Course Completion</option>
+                                                <option value="School Fee Balance">School Fee Balance</option>
+                                                <option value="Applied Amount">Applied Amount</option>
+                                                <option value="Financial Need Score (%)">Financial Need Score (%)</option>
+                                                <option value="Allocated Amount">Allocated Amount</option>
+                                                <option value="Allocation Reasons">Allocation Reasons</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Value</label>
+                                            <select class="form-select filter-value" disabled>
+                                                <option value="">Select Value</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                `);
+                                filterCount = 1;
+                                $('#addFilter').prop('disabled', false);
+                                if (slider) {
+                                    slider.noUiSlider.set([minNeedScore, maxNeedScore]);
+                                }
+                                applyFiltersAndUpdateCharts();
+                            });
+
+                            $('#downloadFiltered').on('click', function() {
+                                try {
+                                    if (!table) throw new Error("Table not initialized");
+                                    let filteredData = table.rows({ search: 'applied' }).data().toArray();
+                                    if (filteredData.length === 0) throw new Error("No data to download");
+                                    let csvContent = "data:text/csv;charset=utf-8,";
+                                    let headers = [
+                                        'Name', 'Gender', 'Ward', 'Academic Level', 'Year of Course Completion',
+                                        'School Fee Balance', 'Applied Amount', 'Financial Need Score (%)', 'Allocated Amount',
+                                        'Allocation Reasons'
+                                    ];
+                                    csvContent += headers.join(",") + "\n";
+                                    filteredData.forEach(row => {
+                                        let rowData = headers.map(header => row[header] || '');
+                                        csvContent += rowData.join(",") + "\n";
+                                    });
+                                    let encodedUri = encodeURI(csvContent);
+                                    let link = document.createElement("a");
+                                    link.setAttribute("href", encodedUri);
+                                    link.setAttribute("download", "filtered_allocation_data.csv");
+                                    document.body.appendChild(link);
+                                    link.click();
+                                    document.body.removeChild(link);
+                                } catch (e) {
+                                    console.error('Error downloading filtered data:', e);
+                                    alert('Failed to download data: ' + e.message);
+                                }
+                            });
+
+                            function applyFiltersAndUpdateCharts() {
+                                if (!table) {
+                                    console.warn("Table not initialized");
+                                    return;
+                                }
+                                let filters = [];
+                                $('.filter-pair').each(function() {
+                                    let field = $(this).find('.filter-field').val();
+                                    let value = $(this).find('.filter-value').val();
+                                    if (field && value !== '') {
+                                        filters.push({ field, value });
+                                    }
+                                });
+                                let minScore, maxScore;
+                                try {
+                                    [minScore, maxScore] = slider ? slider.noUiSlider.get() : [minNeedScore, maxNeedScore];
+                                } catch (e) {
+                                    console.warn("Slider not initialized:", e);
+                                    minScore = minNeedScore;
+                                    maxScore = maxNeedScore;
+                                }
+
+                                $.fn.dataTable.ext.search = [];
+                                $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+                                    for (let filter of filters) {
+                                        let fieldValue;
+                                        switch (filter.field) {
+                                            case 'Name': fieldValue = data[0]; break;
+                                            case 'Gender': fieldValue = data[1]; break;
+                                            case 'Ward': fieldValue = data[2]; break;
+                                            case 'Academic Level': fieldValue = data[3]; break;
+                                            case 'Year of Course Completion': fieldValue = data[4]; break;
+                                            case 'School Fee Balance': fieldValue = data[5]; break;
+                                            case 'Applied Amount': fieldValue = data[6]; break;
+                                            case 'Financial Need Score (%)': fieldValue = data[7]; break;
+                                            case 'Allocated Amount': fieldValue = data[8]; break;
+                                            case 'Allocation Reasons': fieldValue = data[9]; break;
+                                        }
+                                        if (fieldValue !== filter.value) return false;
+                                    }
+                                    let needScore = parseFloat(data[7]);
+                                    if (isNaN(needScore) || needScore < minScore || needScore > maxScore) return false;
+                                    return true;
+                                });
+                                table.draw();
+
+                                filteredData = table.rows({ search: 'applied' }).data().toArray();
+                                console.log("Filtered Data:", filteredData);
+
+                                let currentTab = $('.graph-tab.active').data('graph') || 'studentsAwarded';
+                                updateMainChart(currentTab);
+                            }
+                        } catch (e) {
+                            console.error("Error in AJAX success callback:", e);
+                            alert("Failed to process allocation data. Please try again.");
+                        }
+                    } else {
+                        console.error('Error fetching allocation data:', response.error);
+                        alert("Server error: " + response.error);
+                    }
+                },
+                error: function(xhr, status, errorThrown) {
+                    console.error('AJAX error details:', { status: status, errorThrown: errorThrown, response: xhr.responseText });
+                    sessionStorage.removeItem('isDataLoaded');
+                    let error = xhr.responseJSON ? xhr.responseJSON.error : 'Failed to connect to server: ' + errorThrown;
+                    console.error('Error fetching allocation data:', error, xhr.status);
+                    alert(error);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+Flask==2.3.2            # Updated to satisfy Flask-SQLAlchemy requirement
+joblib==1.4.2
+numpy==1.26.4
+pandas==2.2.3
+scikit-learn==1.6.1
+xgboost==2.1.1
+lightgbm==4.5.0
+shap==0.46.0
+Werkzeug==2.3.6         # Updated to be compatible with Flask 2.3.2
+torch==2.6.0
+openpyxl==3.0.10
+Flask-SQLAlchemy==3.0.5
+Flask-Login==0.6.3
+flask-bcrypt==1.0.1
+pytest==8.3.4

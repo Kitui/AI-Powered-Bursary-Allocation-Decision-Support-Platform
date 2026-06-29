@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batch Allocation - Bursary Allocation System</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Roboto', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(180deg, #1a3c34 0%, #2e5c54 100%);
+            color: white;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding-top: 20px;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+        }
+        .sidebar .logo {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            font-size: 24px;
+            font-weight: 700;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 10px;
+        }
+        .sidebar .logo img {
+            width: 40px;
+            margin-right: 10px;
+            border-radius: 50%;
+        }
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .sidebar ul li {
+            padding: 10px 20px;
+            transition: background-color 0.3s ease;
+        }
+        .sidebar ul li a {
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            font-size: 16px;
+        }
+        .sidebar ul li a i {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        .sidebar ul li a:hover,
+        .sidebar ul li a.active {
+            background-color: #2e5c54;
+            border-radius: 5px;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.3);
+        }
+        .sidebar ul li.divider {
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            margin: 10px 0;
+        }
+        .main-content {
+            margin-left: 250px;
+            padding: 30px;
+            width: calc(100% - 250px);
+            background-color: #e9ecef;
+        }
+        .header {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #1a3c34;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .header i {
+            font-size: 24px;
+            color: #2e5c54;
+        }
+        .form-card {
+            background-color: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .form-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
+        }
+        .form-group label {
+            font-weight: 600;
+            color: #1a3c34;
+            margin-bottom: 5px;
+        }
+        .form-control, .form-control-file {
+            border-radius: 8px;
+            border: 1px solid #ced4da;
+            padding: 10px;
+            transition: border-color 0.3s ease;
+        }
+        .form-control:focus, .form-control-file:focus {
+            border-color: #2e5c54;
+            box-shadow: 0 0 5px rgba(46, 92, 84, 0.3);
+        }
+        .btn-primary {
+            background-color: #1a3c34;
+            border-color: #1a3c34;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+        }
+        .btn-primary:hover {
+            background-color: #2e5c54;
+            border-color: #2e5c54;
+            transform: scale(1.05);
+        }
+        .btn-primary i {
+            margin-right: 5px;
+        }
+        .result-table {
+            margin-top: 20px;
+        }
+        .table {
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .table th {
+            background-color: #1a3c34;
+            color: white;
+            font-weight: 600;
+        }
+        .table td {
+            background-color: #f8f9fa;
+        }
+        .table tr:hover td {
+            background-color: #e9ecef;
+        }
+        .processing-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .processing-spinner {
+            color: #fff;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .alert {
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="logo">
+            <img src="https://via.placeholder.com/40" alt="Logo">
+            Trans Nzoia
+        </div>
+        <ul>
+            <li><a href="{{ url_for('index') }}"><i class="fas fa-home"></i> Home</a></li>
+            <li><a href="{{ url_for('batch_allocation') }}" class="active"><i class="fas fa-file-upload"></i> Batch Allocation</a></li>
+            <li><a href="{{ url_for('single_allocation') }}"><i class="fas fa-user-plus"></i> Single Allocation</a></li>
+            <li><a href="{{ url_for('dashboard') }}"><i class="fas fa-chart-bar"></i> Dashboard</a></li>
+            <li><a href="{{ url_for('allocation_history') }}"><i class="fas fa-clock"></i> Allocation History</a></li>
+            <li><a href="{{ url_for('profile') }}"><i class="fas fa-user"></i> Profile</a></li>
+            <li class="divider"></li>
+            <li><a href="#"><i class="fas fa-heart"></i> Thank You's</a></li>
+            <li><a href="#"><i class="fas fa-comments"></i> Communications</a></li>
+            <li class="divider"></li>
+            <li><a href="#"><i class="fas fa-question-circle"></i> Support</a></li>
+            <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+            <li><a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Processing Overlay -->
+        <div class="processing-overlay" id="processingOverlay">
+            <div class="processing-spinner">
+                <i class="fas fa-spinner fa-spin"></i> Processing...
+            </div>
+        </div>
+
+        <div class="header">
+            <i class="fas fa-file-upload"></i> Batch Allocation
+        </div>
+
+        <div class="form-card">
+            <form id="batchForm">
+                <div class="form-group">
+                    <label for="file">Upload CSV File</label>
+                    <input type="file" class="form-control-file" id="file" name="file" accept=".csv" required>
+                </div>
+                <div class="form-group">
+                    <label for="budget">Total Budget (KSh)</label>
+                    <input type="number" class="form-control" id="budget" name="budget" required placeholder="Enter budget in KSh">
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-calculator"></i> Allocate
+                </button>
+            </form>
+            <div id="batchResult" class="mt-3" style="display: none;">
+                <div id="batchMessage"></div>
+                <div class="result-table">
+                    <h5>Allocation Summary</h5>
+                    <table class="table table-bordered">
+                        <tbody id="batchSummaryTable">
+                            <tr>
+                                <td><strong>Total Applicants</strong></td>
+                                <td id="totalApplicants"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Total Allocated</strong></td>
+                                <td id="totalAllocatedTable"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Average Allocation</strong></td>
+                                <td id="averageAllocation"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Highest Allocation</strong></td>
+                                <td id="highestAllocation"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Lowest Allocation</strong></td>
+                                <td id="lowestAllocation"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Budget Utilization</strong></td>
+                                <td id="budgetUtilizationTable"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Remaining Budget</strong></td>
+                                <td id="remainingBudgetTable"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Download Results</strong></td>
+                                <td><a id="downloadLink" class="btn btn-success" style="display: none;">Download</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h5>Fairness Metrics</h5>
+                    <table class="table table-bordered">
+                        <tbody id="fairnessMetricsTable">
+                            <tr>
+                                <td><strong>Gender Disparity (Avg Allocation Difference)</strong></td>
+                                <td id="genderDisparity"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Academic Level Disparity (Avg Allocation Difference)</strong></td>
+                                <td id="academicDisparity"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Ward Disparity (Std Dev of Avg Allocations)</strong></td>
+                                <td id="wardDisparity"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        document.getElementById('batchForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            document.getElementById('processingOverlay').style.display = 'flex';
+
+            const formData = new FormData(this);
+            fetch('/batch_allocation', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('processingOverlay').style.display = 'none';
+
+                const resultDiv = document.getElementById('batchResult');
+                const messageDiv = document.getElementById('batchMessage');
+                const downloadLink = document.getElementById('downloadLink');
+                const totalApplicants = document.getElementById('totalApplicants');
+                const totalAllocatedTable = document.getElementById('totalAllocatedTable');
+                const averageAllocation = document.getElementById('averageAllocation');
+                const highestAllocation = document.getElementById('highestAllocation');
+                const lowestAllocation = document.getElementById('lowestAllocation');
+                const budgetUtilizationTable = document.getElementById('budgetUtilizationTable');
+                const remainingBudgetTable = document.getElementById('remainingBudgetTable');
+                const genderDisparity = document.getElementById('genderDisparity');
+                const academicDisparity = document.getElementById('academicDisparity');
+                const wardDisparity = document.getElementById('wardDisparity');
+
+                resultDiv.style.display = 'block';
+                if (data.status === 'success') {
+                    let warningHtml = '';
+                    if (data.validation_warnings && data.validation_warnings.length) {
+                        warningHtml = '<div class="alert alert-warning"><strong>Data warnings:</strong><ul>' +
+                            data.validation_warnings.map(w => `<li>${w.message}</li>`).join('') +
+                            '</ul></div>';
+                    }
+                    messageDiv.innerHTML = '<div class="alert alert-success">Allocation completed successfully!</div>' + warningHtml;
+                    downloadLink.style.display = 'inline-block';
+                    downloadLink.href = '/download/' + data.filename;
+
+                    totalApplicants.textContent = data.stats.total_applicants;
+                    totalAllocatedTable.textContent = data.stats.total_allocated.toFixed(2) + ' KSh';
+                    averageAllocation.textContent = data.stats.average_allocation.toFixed(2) + ' KSh';
+                    highestAllocation.textContent = data.stats.highest_allocation.toFixed(2) + ' KSh (to ' + data.stats.highest_allocation_name + ')';
+                    lowestAllocation.textContent = data.stats.lowest_allocation.toFixed(2) + ' KSh (to ' + data.stats.lowest_allocation_name + ')';
+                    budgetUtilizationTable.textContent = data.stats.budget_utilization.toFixed(2) + '%';
+                    remainingBudgetTable.textContent = data.stats.remaining_budget.toFixed(2) + ' KSh';
+
+                    genderDisparity.textContent = data.fairness_metrics.gender_disparity.toFixed(2) + ' KSh';
+                    academicDisparity.textContent = data.fairness_metrics.academic_disparity.toFixed(2) + ' KSh';
+                    wardDisparity.textContent = data.fairness_metrics.ward_disparity.toFixed(2) + ' KSh';
+                } else {
+                    let validationHtml = '';
+                    if (data.validation_errors && data.validation_errors.length) {
+                        validationHtml = '<ul>' + data.validation_errors.map(err => {
+                            const rows = err.rows ? ` Rows: ${err.rows.join(', ')}${err.total_rows > err.rows.length ? '...' : ''}` : '';
+                            const columns = err.columns ? ` Columns: ${err.columns.join(', ')}` : '';
+                            return `<li>${err.message}${columns}${rows}</li>`;
+                        }).join('') + '</ul>';
+                    }
+                    messageDiv.innerHTML = `<div class="alert alert-danger">${data.error}${validationHtml}</div>`;
+                    downloadLink.style.display = 'none';
+                    genderDisparity.textContent = 'N/A';
+                    academicDisparity.textContent = 'N/A';
+                    wardDisparity.textContent = 'N/A';
+                }
+            })
+            .catch(error => {
+                document.getElementById('processingOverlay').style.display = 'none';
+                console.error('Error:', error);
+                document.getElementById('batchMessage').innerHTML = '<div class="alert alert-danger">An error occurred during allocation.</div>';
+                document.getElementById('genderDisparity').textContent = 'N/A';
+                document.getElementById('academicDisparity').textContent = 'N/A';
+                document.getElementById('wardDisparity').textContent = 'N/A';
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Trans Nzoia County Bursary Allocation</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+        /* Left Navigation Ribbon */
+        .sidebar {
+            width: 250px;
+            background-color: #1a3c34;
+            color: white;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding-top: 20px;
+        }
+        .sidebar .logo {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .sidebar .logo img {
+            width: 40px;
+            margin-right: 10px;
+        }
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .sidebar ul li {
+            padding: 10px 20px;
+        }
+        .sidebar ul li a {
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+        .sidebar ul li a i {
+            margin-right: 10px;
+        }
+        .sidebar ul li a:hover,
+        .sidebar ul li a.active {
+            background-color: #2e5c54;
+            border-radius: 5px;
+        }
+        .sidebar ul li.divider {
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            margin: 10px 0;
+        }
+        /* Main Content Area */
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            width: calc(100% - 250px);
+        }
+        .header {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .form-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="logo">
+            <img src="https://via.placeholder.com/40" alt="Logo">
+            Trans Nzoia
+        </div>
+        <ul>
+            <li><a href="{{ url_for('index') }}" data-section="dashboard"><i class="fas fa-home"></i> Home</a></li>
+            <li><a href="{{ url_for('index') }}" data-section="batch"><i class="fas fa-file-upload"></i> Batch Allocation</a></li>
+            <li><a href="{{ url_for('index') }}" data-section="single"><i class="fas fa-user-plus"></i> Single Allocation</a></li>
+            <li><a href="{{ url_for('dashboard') }}"><i class="fas fa-chart-bar"></i> Dashboard</a></li>
+            <li><a href="{{ url_for('profile') }}" class="active"><i class="fas fa-user"></i> Profile</a></li>
+            <li><a href="{{ url_for('applications') }}"><i class="fas fa-list"></i> Applications</a></li>
+            <li class="divider"></li>
+            <li><a href="#"><i class="fas fa-heart"></i> Thank You's</a></li>
+            <li><a href="#"><i class="fas fa-comments"></i> Communications</a></li>
+            <li class="divider"></li>
+            <li><a href="#"><i class="fas fa-question-circle"></i> Support</a></li>
+            <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+            {% if current_user.is_authenticated %}
+                <li><a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            {% else %}
+                <li><a href="{{ url_for('login') }}"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+                <li><a href="{{ url_for('register') }}"><i class="fas fa-user-plus"></i> Register</a></li>
+            {% endif %}
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">Profile</div>
+        
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="form-card">
+            <form method="POST">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" value="{{ current_user.email }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" class="form-control" id="name" name="name" value="{{ current_user.name }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="gender">Gender</label>
+                    <select class="form-control" id="gender" name="gender" required>
+                        <option value="Male" {% if current_user.gender == 'Male' %}selected{% endif %}>Male</option>
+                        <option value="Female" {% if current_user.gender == 'Female' %}selected{% endif %}>Female</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="ward">Ward</label>
+                    <select class="form-control" id="ward" name="ward" required>
+                        <option value="Machewa" {% if current_user.ward == 'Machewa' %}selected{% endif %}>Machewa</option>
+                        <option value="Kinyoro" {% if current_user.ward == 'Kinyoro' %}selected{% endif %}>Kinyoro</option>
+                        <option value="Saboti" {% if current_user.ward == 'Saboti' %}selected{% endif %}>Saboti</option>
+                        <option value="Kiminini" {% if current_user.ward == 'Kiminini' %}selected{% endif %}>Kiminini</option>
+                        <option value="Cherangany" {% if current_user.ward == 'Cherangany' %}selected{% endif %}>Cherangany</option>
+                        <option value="Kwanza" {% if current_user.ward == 'Kwanza' %}selected{% endif %}>Kwanza</option>
+                        <option value="Endebess" {% if current_user.ward == 'Endebess' %}selected{% endif %}>Endebess</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="password">New Password (leave blank to keep current)</label>
+                    <input type="password" class="form-control" id="password" name="password">
+                </div>
+                <button type="submit" class="btn btn-primary">Update Profile</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

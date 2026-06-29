@@ -1,0 +1,13 @@
+.venv/
+venv/
+__pycache__/
+.pytest_cache/
+.agents/
+.codex/
+*.pyc
+instance/
+*.db
+*.log
+cookies.txt
+allocation_output_*.xlsx
+static/CPP1-NNS4PPA5Q-IMMIGRATION INVOICE.pdf
